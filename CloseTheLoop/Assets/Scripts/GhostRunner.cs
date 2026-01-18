@@ -14,9 +14,24 @@ public class GhostRunner : MonoBehaviour
         rotations = new List<Quaternion>(rotList);
     }
 
+    // NEW FUNCTION: FAST FORWARD
+    public void SkipToFrame(int targetIndex)
+    {
+        if (positions == null) return;
+        index = Mathf.Clamp(targetIndex, 0, positions.Count - 1);
+
+        // Snap immediately to that spot
+        transform.position = positions[index];
+        transform.rotation = rotations[index];
+    }
+
+    public int GetCurrentFrameIndex()
+    {
+        return index;
+    }
+
     void FixedUpdate()
     {
-        // If finished, just stand still and wait for the Manager to delete us
         if (positions == null || index >= positions.Count) return;
 
         Vector3 targetPos = positions[index];
@@ -24,9 +39,9 @@ public class GhostRunner : MonoBehaviour
         float distanceToNextStep = direction.magnitude;
         bool blocked = false;
 
-        // Wall Check
         if (distanceToNextStep > 0.001f)
         {
+            // Use bitwise complement to ignore player layer if needed, or just tags
             if (Physics.Raycast(transform.position, direction.normalized, out RaycastHit hit, stopDistance, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore))
             {
                 if (!hit.collider.CompareTag("Player") && !hit.collider.CompareTag("Ghost"))
